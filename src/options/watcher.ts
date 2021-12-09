@@ -112,6 +112,9 @@ export class OptionsWatcher {
     this._watcher = chokidar
       .watch([...this._watchedPaths], {
         ...this.watchOptions,
+        awaitWriteFinish: {
+          stabilityThreshold: 100
+        },
         ignoreInitial: true,
       })
       .on("add", boundCallback)
