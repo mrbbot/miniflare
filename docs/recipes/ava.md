@@ -18,7 +18,7 @@ Enable ES modules mode, and add a new `test` script in `package.json`:
   "type": "module",
   "scripts": {
     ...
-    "test": "npm run build && ava --verbose test/*.spec.js"
+    "test": "npm run build && ava --verbose --node-arguments='--experimental-vm-modules' test/*.spec.js"
   },
   ...
 }
