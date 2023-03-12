@@ -5,7 +5,7 @@ import {
   Plugin,
   PluginContext,
 } from "@miniflare/shared";
-import type { Cron } from "cron-schedule";
+import { Cron } from "croner";
 
 export type SchedulerErrorCode = "ERR_INVALID_CRON"; // Invalid CRON expression
 
@@ -28,14 +28,14 @@ export class SchedulerPlugin
   })
   crons?: string[];
 
-  #validatedCrons: Cron[] = [];
+  #validatedCrons: string[] = [];
 
   constructor(ctx: PluginContext, options?: SchedulerOptions) {
     super(ctx);
     this.assignOptions(options);
   }
 
-  get validatedCrons(): Cron[] {
+  get validatedCrons(): string[] {
     return this.#validatedCrons;
   }
 
@@ -44,16 +44,12 @@ export class SchedulerPlugin
       this.#validatedCrons = [];
       return;
     }
-    const {
-      parseCronExpression,
-    }: typeof import("cron-schedule") = require("cron-schedule");
     const validatedCrons = Array(this.crons.length);
     for (let i = 0; i < this.crons.length; i++) {
       const spec = this.crons[i];
       try {
-        const cron = parseCronExpression(spec);
-        cron.toString = () => spec;
-        validatedCrons[i] = cron;
+        const cron = Cron(spec);
+        validatedCrons[i] = spec;
       } catch (e: any) {
         throw new SchedulerError(
           "ERR_INVALID_CRON",

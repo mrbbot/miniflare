@@ -4,15 +4,10 @@ import {
   ReloadEvent,
   logResponse,
 } from "@miniflare/core";
-import type { Cron, ITimerHandle } from "cron-schedule";
+import { Cron } from "croner";
 import { SchedulerPlugin } from "./plugin";
 
 export * from "./plugin";
-
-export interface CronSchedulerImpl {
-  setInterval(cron: Cron, task: () => any): ITimerHandle;
-  clearTimeoutOrInterval(handle: ITimerHandle): void;
-}
 
 export type SchedulerPluginSignatures = CorePluginSignatures & {
   SchedulerPlugin: typeof SchedulerPlugin;
@@ -22,15 +17,12 @@ const kReload = Symbol("kReload");
 
 export class CronScheduler<Plugins extends SchedulerPluginSignatures> {
   // noinspection JSMismatchedCollectionQueryUpdate
-  private previousValidatedCrons?: Cron[];
-  private scheduledHandles?: ITimerHandle[];
+  private previousValidatedCrons?: string[];
+  private scheduledHandles?: Cron[];
   private inaccurateCpu?: boolean;
 
   constructor(
-    private readonly mf: MiniflareCore<Plugins>,
-    private readonly cronScheduler: Promise<CronSchedulerImpl> = Promise.resolve().then(
-      () => require("cron-schedule").TimerBasedCronScheduler
-    )
+    private readonly mf: MiniflareCore<Plugins>
   ) {
     mf.addEventListener("reload", this[kReload]);
   }
@@ -43,17 +35,15 @@ export class CronScheduler<Plugins extends SchedulerPluginSignatures> {
     if (this.previousValidatedCrons === validatedCrons) return;
     this.previousValidatedCrons = validatedCrons;
 
-    const cronScheduler = await this.cronScheduler;
-
     // Schedule tasks, stopping all current ones first
     this.scheduledHandles?.forEach((handle) =>
-      cronScheduler.clearTimeoutOrInterval(handle)
+      handle.stop()
     );
     if (!validatedCrons.length) return;
 
     this.scheduledHandles = validatedCrons?.map((cron) => {
       const spec = cron.toString();
-      return cronScheduler.setInterval(cron, async () => {
+      return Cron(spec, async () => {
         const start = process.hrtime();
         const startCpu = this.inaccurateCpu ? process.cpuUsage() : undefined;
         // scheduledTime will default to Date.now()
@@ -71,18 +61,16 @@ export class CronScheduler<Plugins extends SchedulerPluginSignatures> {
 
   async dispose(): Promise<void> {
     this.mf.removeEventListener("reload", this[kReload]);
-    const cronScheduler = await this.cronScheduler;
     this.scheduledHandles?.forEach((handle) =>
-      cronScheduler.clearTimeoutOrInterval(handle)
+      handle.stop()
     );
   }
 }
 
 export async function startScheduler<Plugins extends SchedulerPluginSignatures>(
-  mf: MiniflareCore<Plugins>,
-  cronScheduler?: Promise<CronSchedulerImpl>
+  mf: MiniflareCore<Plugins>
 ): Promise<CronScheduler<Plugins>> {
-  const scheduler = new CronScheduler(mf, cronScheduler);
+  const scheduler = new CronScheduler(mf);
   const reloadEvent = new ReloadEvent("reload", {
     plugins: await mf.getPlugins(),
     initial: false,
