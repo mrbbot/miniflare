@@ -183,6 +183,8 @@ const res = await mf.dispatchFetch("http://localhost:8787/", {
 });
 console.log(await res.text()); // Hello Miniflare!
 
+const worker = await mf.getWorker();
+
 const scheduledResult = await worker.scheduled({
   cron: "* * * * *",
 });
@@ -442,6 +444,8 @@ const res = await mf.dispatchFetch("http://localhost:8787/", {
 const text = await res.text();
 
 // Dispatch "scheduled" event to worker
+const worker = await mf.getWorker();
+
 const scheduledResult = await worker.scheduled({ cron: "30 * * * *" })
 
 const TEST_NAMESPACE = await mf.getKVNamespace("TEST_NAMESPACE");
