@@ -2,7 +2,7 @@
 
 HTMLRewriter module for [Miniflare](https://github.com/cloudflare/miniflare): a
 fun, full-featured, fully-local simulator for Cloudflare Workers. See
-[📄 HTMLRewriter](https://miniflare.dev/core/html-rewriter) for more details.
+[📄 HTMLRewriter](https://developers.cloudflare.com/workers/runtime-apis/html-rewriter/) for more details.
 
 ## Example
 
