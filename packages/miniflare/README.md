@@ -10,7 +10,7 @@
 > Workers runtime [`workerd`](https://github.com/cloudflare/workerd). This
 > practically eliminates behaviour mismatches between development and production
 > deployments. We recommend you
-> [migrate to Miniflare 3](https://miniflare.dev/get-started/migrating) now if
+> [migrate to Miniflare 3](https://miniflare.dev/migrations/from-v2) now if
 > you can. Whilst Miniflare 3 supports most of Miniflare 2's features, one key
 > omission is the unit testing environment. We're actively working on adding
 > support for this to Miniflare 3. Once this is supported, we're planning to
